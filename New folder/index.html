@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register Your Interest</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="logo">GULF LAND</div>
+  <div class="right">
+    <span class="lang">EN</span>
+    <button class="cta">GET IN TOUCH</button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="form-card">
+    <h2>Register Your Interest</h2>
+
+    <form id="leadForm">
+      <div class="grid">
+        <input type="text" name="full_name" placeholder="Full Name *" required>
+        <input type="email" name="email" placeholder="Email">
+      </div>
+
+      <div class="grid">
+        <select name="country_code" required>
+          <option value="">Select</option>
+          <option value="+91">+91</option>
+          <option value="+971">+971</option>
+        </select>
+
+        <input type="tel" name="phone" placeholder="Phone Number *" required>
+      </div>
+
+      <select name="interest" class="full" required>
+        <option value="">Interested In *</option>
+        <option>1 BHK </option>
+        <option>2 BHK</option>
+        <option>3 BHK</option>
+        <option>4 BHK</option>
+      </select>
+
+      <p class="terms">
+        by clicking submit you agree to the terms and conditions
+      </p>
+
+      <button type="submit" class="submit-btn">Submit</button>
+      <p id="msg"></p>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
