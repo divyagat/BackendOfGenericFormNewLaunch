@@ -9,7 +9,7 @@ app.set("trust proxy", true); // 🔥 real client IP
 
 // 🔗 B2B Bricks CRM Hook
 const CRM_URL =
-  "https://connector.b2bbricks.com/api/Integration/hook/c12c3b7d-b505-48f3-96ff-5e17752d57d6";
+  "https://connector.b2bbricks.com/api/Integration/hook/9f50fa7b-388d-4830-9a13-f82abc3ea75f";
 
 /* ===============================
    GET REAL USER IP
