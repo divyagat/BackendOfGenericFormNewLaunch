@@ -5,12 +5,54 @@ const axios = require("axios");
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.set("trust proxy", true); // 🔥 real client IP
 
-// 🔗 B2B Bricks CRM Webhook
+// 🔗 B2B Bricks CRM Hook
 const CRM_URL =
-  "https://connector.b2bbricks.com/api/Integration/hook/8a43ae60-8a26-4213-abc6-0cf685203dd2";
+  "https://connector.b2bbricks.com/api/Integration/hook/c12c3b7d-b505-48f3-96ff-5e17752d57d6";
 
-// 📩 Receive lead from React
+/* ===============================
+   GET REAL USER IP
+================================ */
+function getUserIP(req) {
+  let ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    "";
+
+  if (ip.includes("::ffff:")) {
+    ip = ip.replace("::ffff:", "");
+  }
+
+  return ip || "N/A";
+}
+
+/* ===============================
+   IP → LOCATION (AUTO)
+================================ */
+async function getLocationFromIP(ip) {
+  try {
+    if (!ip || ip === "127.0.0.1" || ip === "::1") {
+      return "Localhost";
+    }
+
+    const res = await axios.get(
+      `http://ip-api.com/json/${ip}?fields=status,country,regionName,city`
+    );
+
+    if (res.data.status === "success") {
+      return `${res.data.city}, ${res.data.regionName}, ${res.data.country}`;
+    }
+
+    return "Unknown";
+  } catch {
+    return "Unknown";
+  }
+}
+
+/* ===============================
+   RECEIVE LEAD FROM REACT
+================================ */
 app.post("/api/leads", async (req, res) => {
   try {
     console.log("📥 Incoming React Lead:", req.body);
@@ -19,12 +61,11 @@ app.post("/api/leads", async (req, res) => {
       fullName,
       email,
       phone,
-      interest,
-      location,
+      interest,     // project
+      location,     // form location (Loni Kalbhor)
       budget
     } = req.body;
 
-    // ✅ Basic validation
     if (!fullName || !phone || !interest) {
       return res.status(400).json({
         success: false,
@@ -32,38 +73,53 @@ app.post("/api/leads", async (req, res) => {
       });
     }
 
-    // 🛡 CRM-safe payload
+    /* ===============================
+       AUTO IP + LOCATION
+    ================================ */
+    const visitorIP = getUserIP(req);
+    const leadLocation = await getLocationFromIP(visitorIP);
+
+    /* ===============================
+       🔥 CRM REQUIREMENTS (IMAGE MATCH)
+    ================================ */
+    const remark =
+      `Project: ${interest}, ` +
+      `Location: ${location || "N/A"}, ` +
+      `Visitor IP: ${visitorIP}, ` +
+      `Lead Location: ${leadLocation}`;
+
+    /* ===============================
+       CRM SAFE PAYLOAD
+    ================================ */
     const crmPayload = {
       name: fullName,
       email: email || "",
       mobile: phone,
-      interest: interest,
+      project: interest,
 
-      // anti-spam / tracking
-      anti_spam_id: Date.now(),
-      unique_hash: Math.random().toString(36).substring(2),
+      // ⭐ THIS FIELD SHOWS IN CRM REQUIREMENTS
+      remark: remark,
 
-      // optional extra info
-      location: location || "",
-      budget: budget || ""
+      // optional
+      budget: budget || "",
+      anti_spam_id: Date.now()
     };
 
-    console.log("🛡 Payload sent to CRM:", crmPayload);
+    console.log("📤 Sending to CRM:", crmPayload);
 
-    // 🚀 Send to CRM
     const crmRes = await axios.post(CRM_URL, crmPayload, {
-      headers: {
-        "Content-Type": "application/json"
-      }
+      headers: { "Content-Type": "application/json" }
     });
 
-    console.log("📤 CRM Response:", crmRes.data);
+    console.log("✅ CRM Response:", crmRes.data);
 
     res.json({
       success: true,
       message: "Lead submitted successfully",
-      crm_response: crmRes.data
+      crm_response: crmRes.data,
+      sent_data: crmPayload
     });
+
   } catch (err) {
     console.error("❌ CRM Error:", err.response?.data || err.message);
 
@@ -75,7 +131,9 @@ app.post("/api/leads", async (req, res) => {
   }
 });
 
-// 🚀 Start server
+/* ===============================
+   START SERVER
+================================ */
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

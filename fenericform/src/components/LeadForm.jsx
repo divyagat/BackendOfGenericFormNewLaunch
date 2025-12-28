@@ -5,6 +5,18 @@ export default function LeadForm() {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ Project List
+  const projects = [
+    "Mantra Magnus Elite (Mundhwa Pune)",
+    "Mantra Magnus (Mundhwa Pune)",
+    "Mantra 1 Residences By Burgundy (Magarpatta Pune)",
+    "Mantra Codename-Paradise (Sus Pune)",
+    "Mantra Melange (Kharadi Pune)",
+    "Mantra Meridian (Balewadi Pune)"
+    
+
+  ];
+
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -17,16 +29,21 @@ export default function LeadForm() {
       email: form.email.value,
       phone: form.country_code.value + form.phone.value,
       interest: form.interest.value,
-      location: form.location.value,
+      location: form.location.value, // project name
       budget: form.budget.value,
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        "http://localhost:5000/api/leads",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
       const result = await res.json();
 
@@ -36,7 +53,7 @@ export default function LeadForm() {
       } else {
         setMsg(result.message || "Submission failed ❌");
       }
-    } catch (err) {
+    } catch (error) {
       setMsg("Server error ❌");
     } finally {
       setLoading(false);
@@ -50,12 +67,14 @@ export default function LeadForm() {
           <h2>Register Your Interest</h2>
 
           <form onSubmit={submitHandler}>
+            {/* Name + Email */}
             <div className="grid">
               <input
                 name="full_name"
                 placeholder="Full Name *"
                 required
               />
+
               <input
                 name="email"
                 placeholder="Email"
@@ -63,65 +82,69 @@ export default function LeadForm() {
               />
             </div>
 
+            {/* Country Code + Phone */}
             <div
-  className="grid"
-  style={{
-    display: "flex",
-    gap: "8px",          // gap kam kar diya
-    alignItems: "center",
-  }}
->
-  <input
-    name="country_code"
-    value="+91"
-    readOnly
-    style={{
-      width: "55px",
-      textAlign: "center",
-      padding: "10px 6px",
-      background: "#f3f3f3",
-      cursor: "default",
-      borderRadius: "6px",
-      flexShrink: 0,     // width fix rahe
-    }}
-  />
+              className="grid"
+              style={{
+                display: "flex",
+                gap: "8px",
+                alignItems: "center",
+              }}
+            >
+              <input
+                name="country_code"
+                value="+91"
+                readOnly
+                style={{
+                  width: "55px",
+                  textAlign: "center",
+                  padding: "10px 6px",
+                  background: "#f3f3f3",
+                  cursor: "default",
+                  borderRadius: "6px",
+                  flexShrink: 0,
+                }}
+              />
 
-  <input
-    name="phone"
-    placeholder="Phone Number *"
-    required
-    pattern="[0-9]{10}"
-    maxLength={10}
-    style={{
-      flex: 1,           // baaki poori width le
-    }}
-  />
-</div>
+              <input
+                name="phone"
+                placeholder="Phone Number *"
+                required
+                pattern="[0-9]{10}"
+                maxLength={10}
+                style={{ flex: 1 }}
+              />
+            </div>
 
+            {/* Project Dropdown */}
+            <select name="location" className="full" required>
+              <option value="">Select Project *</option>
+              {projects.map((project, index) => (
+                <option key={index} value={project}>
+                  {project}
+                </option>
+              ))}
+            </select>
 
-            <input
-              name="location"
-              className="full"
-              placeholder="Preferred Location *"
-              required
-            />
-
+            {/* Interest */}
             <select name="interest" className="full" required>
               <option value="">Interested In *</option>
-              <option>1 BHK</option>
-              <option>2 BHK</option>
-              <option>3 BHK</option>
-              <option>4 BHK</option>
+              {/* <option value="1 BHK">1 BHK</option> */}
+              <option value="2 BHK">2 BHK</option>
+              <option value="3 BHK">3 BHK</option>
+              <option value="4 BHK">4 BHK</option>
             </select>
 
+            {/* Budget */}
             <select name="budget" className="full" required>
               <option value="">Budget *</option>
-              <option>₹50L – ₹75L</option>
-              <option>₹75L – ₹1Cr</option>
-              <option>₹1Cr+</option>
-              <option>Not Decided</option>
+              <option value="₹50L – ₹75L">₹50L – ₹75L</option>
+              <option value="₹75L – ₹1Cr">₹75L – ₹1Cr</option>
+              <option value="₹1Cr+">₹1Cr+</option>
+              <option value="Not Decided">Not Decided</option>
             </select>
 
+            {/* Submit */}
             <button className="submit-btn" disabled={loading}>
               {loading ? "Submitting..." : "Submit"}
             </button>
